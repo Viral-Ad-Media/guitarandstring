@@ -6,21 +6,40 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/seed.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "better-auth": "^1.7.23",
+    "drizzle-orm": "^0.45.4",
+    "fast-xml-parser": "^5.12.1",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.2.0",
     "next": "16.4.6",
+    "pg": "^8.23.1",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "sanitize-html": "^2.18.2",
+    "server-only": "^0.0.1"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "4.3.3",
+    "@tailwindcss/typography": "^0.5.20",
     "@types/node": "^20",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/sanitize-html": "^2.16.2",
+    "dotenv": "^18.0.10",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   },
   "packageManager": "pnpm@10.28.0"
