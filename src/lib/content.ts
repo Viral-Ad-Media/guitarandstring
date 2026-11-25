@@ -87,3 +87,75 @@ export async function getAllPublicSlugs() {
   const c = await db.select({ slug: categories.slug }).from(categories);
   return { posts: p, categories: c };
 }
+
+/** Published posts with the given slugs, in the order the slugs are listed. */
+export async function getPostsBySlugs(slugs: string[]) {
+  "use cache";
+  cacheTag(CONTENT_TAG);
+  cacheLife("hours");
+  if (slugs.length === 0) return [];
+  const rows = await db
+    .select(listColumns)
+    .from(posts)
+    .where(and(eq(posts.status, "published"), eq(posts.type, "post"), inArray(posts.slug, slugs)));
+  return slugs.flatMap((s) => rows.filter((r) => r.slug === s));
+}
+
+/** Post counts for the home page: total, per language and per category slug. */
+export async function getContentCounts() {
+  "use cache";
+  cacheTag(CONTENT_TAG);
+  cacheLife("hours");
+  const rows = await db
+    .select({ id: posts.id, lang: posts.lang })
+    .from(posts)
+    .where(and(eq(posts.status, "published"), eq(posts.type, "post")));
+  const links = await db
+    .select({ postId: postCategories.postId, slug: categories.slug })
+    .from(postCategories)
+    .innerJoin(categories, eq(categories.id, postCategories.categoryId));
+  const published = new Set(rows.map((r) => r.id));
+  const byCategory: Record<string, number> = {};
+  for (const l of links) {
+    if (published.has(l.postId)) byCategory[l.slug] = (byCategory[l.slug] ?? 0) + 1;
+  }
+  return {
+    total: rows.length,
+    en: rows.filter((r) => r.lang === "en").length,
+    es: rows.filter((r) => r.lang === "es").length,
+    byCategory,
+  };
+}
+
+/** Up to `limit` other published posts in the same language that share a category. */
+export async function getRelatedPosts(postId: number, categorySlugs: string[], lang: "en" | "es", limit = 3) {
+  "use cache";
+  cacheTag(CONTENT_TAG);
+  cacheLife("hours");
+  if (categorySlugs.length === 0) return [];
+  const catIds = db.select({ id: categories.id }).from(categories).where(inArray(categories.slug, categorySlugs));
+  const ids = db
+    .select({ id: postCategories.postId })
+    .from(postCategories)
+    .where(inArray(postCategories.categoryId, catIds));
+  const items = await db
+    .select(listColumns)
+    .from(posts)
+    .where(
+      and(
+        eq(posts.status, "published"),
+        eq(posts.type, "post"),
+        eq(posts.lang, lang),
+        inArray(posts.id, ids),
+      ),
+    )
+    .orderBy(desc(posts.publishedAt), desc(posts.id))
+    .limit(limit + 1);
+  return items.filter((p) => p.id !== postId).slice(0, limit);
+}
+
+/** Rough reading time in minutes, from the stored HTML. */
+export function readingMinutes(html: string) {
+  const words = html.replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(words / 230));
+}

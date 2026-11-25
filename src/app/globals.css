@@ -1,38 +1,84 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+/*
+ * One system for the whole site (after the taste-skill guidance):
+ * a warm near-black ink, a mostly neutral interface, one accent for the
+ * main button, links and focus, one radius family, one button pair,
+ * one card recipe and one hover layer.
+ */
 :root {
   --background: #fbf8f3;
-  --foreground: #1f1a17;
+  --surface: #f3ede4;
+  --foreground: #211b17;
+  --ink-soft: #3d342e;
   --muted: #6b5f57;
   --card: #ffffff;
-  --border: #e7ded3;
-  --accent: #b45309;
-  --accent-strong: #92400e;
+  --border: #e4dacd;
+  --accent: #a9490a;
+  --accent-strong: #8a3a07;
+  --on-accent: #ffffff;
+
+  --nav: 72px;
+  --gut: 80px;
+  --r-lg: 20px;
+  --r-md: 12px;
+  --r-sm: 8px;
+  --r-btn: 12px;
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-enter: cubic-bezier(0.22, 1, 0.36, 1);
+  --m-in: 150ms;
+  --m-out: 120ms;
+  --m-press: 90ms;
+  --m-image: 600ms;
+  --m-image-out: 400ms;
+}
+
+@media (max-width: 1023px) {
+  :root {
+    --gut: 40px;
+  }
+}
+@media (max-width: 639px) {
+  :root {
+    --nav: 60px;
+    --gut: 20px;
+  }
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #15110e;
+    --surface: #1c1713;
     --foreground: #f3ede6;
+    --ink-soft: #ddd3c9;
     --muted: #b3a79c;
     --card: #1e1915;
     --border: #3a312a;
     --accent: #f59e0b;
     --accent-strong: #fbbf24;
+    --on-accent: #1a1208;
   }
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
   --color-foreground: var(--foreground);
+  --color-ink-soft: var(--ink-soft);
   --color-muted: var(--muted);
   --color-card: var(--card);
   --color-border: var(--border);
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
+  --color-on-accent: var(--on-accent);
   --font-sans: var(--font-sans);
   --font-serif: var(--font-serif);
+}
+
+html {
+  scroll-padding-top: calc(var(--nav) + 16px);
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -40,8 +86,296 @@ body {
   color: var(--foreground);
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+  hyphens: manual;
+}
+p {
+  text-wrap: pretty;
+}
+
+@layer components {
+/* ---------- Layout ---------- */
+
+/* The page's one content width: every block sits on these two lines. */
+.wrap {
+  width: 100%;
+  max-width: calc(1280px + 2 * var(--gut));
+  margin-inline: auto;
+  padding-inline: var(--gut);
+}
+
+.measure {
+  max-width: 62ch;
+}
+
+/* ---------- Focus and skip link ---------- */
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--gut);
+  top: 12px;
+  z-index: 50;
+  transform: translateY(-200%);
+  border-radius: var(--r-sm);
+  background: var(--foreground);
+  color: var(--background);
+  padding: 10px 16px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.skip-link:focus {
+  transform: none;
+}
+
+/* ---------- Buttons: one pair, 44px, 16px labels ---------- */
+
+.btn {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: var(--r-btn);
+  border: 1px solid transparent;
+  padding: 0 22px;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  transition:
+    background-color var(--m-out) var(--ease),
+    border-color var(--m-out) var(--ease),
+    transform var(--m-out) var(--ease);
+}
+.btn--primary {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.btn--secondary {
+  border-color: color-mix(in oklab, var(--foreground) 22%, transparent);
+  color: var(--foreground);
+  background: transparent;
+}
+.btn .m-arrow {
+  transition: transform var(--m-out) var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    transform: translateY(-1px);
+    transition-duration: var(--m-in);
+  }
+  .btn--primary:hover {
+    background: color-mix(in oklab, var(--accent) 86%, var(--foreground));
+  }
+  .btn--secondary:hover {
+    background: color-mix(in oklab, var(--foreground) 5%, transparent);
+    border-color: color-mix(in oklab, var(--foreground) 45%, transparent);
+  }
+  .btn:hover .m-arrow {
+    transform: translateX(3px);
+    transition-duration: var(--m-in);
+  }
+}
+.btn:active {
+  transform: translateY(1px) scale(0.985);
+  transition-duration: var(--m-press);
+}
+@media (max-width: 639px) {
+  .btn-row > .btn {
+    width: 100%;
+  }
+}
+
+/* ---------- Links: one look, an underline that draws ---------- */
+
+.link {
+  color: var(--foreground);
+  font-weight: 600;
+  background-image: linear-gradient(currentColor, currentColor),
+    linear-gradient(color-mix(in oklab, currentColor 25%, transparent), color-mix(in oklab, currentColor 25%, transparent));
+  background-size:
+    0% 1px,
+    100% 1px;
+  background-position:
+    0 100%,
+    0 100%;
+  background-repeat: no-repeat;
+  padding-bottom: 2px;
+  transition: background-size var(--m-out) var(--ease);
+}
+@media (hover: hover) {
+  .link:hover {
+    background-size:
+      100% 1px,
+      100% 1px;
+    transition-duration: var(--m-in);
+  }
+}
+
+/* Nav and footer words rest bare and draw a line under the word. */
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ink-soft);
+  transition: color var(--m-out) var(--ease);
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 8px;
+  height: 1.5px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform var(--m-out) var(--ease);
+}
+.nav-link[aria-current="page"] {
+  color: var(--foreground);
+}
+.nav-link[aria-current="page"]::after {
+  transform: scaleX(1);
+  height: 2px;
+}
+@media (hover: hover) {
+  .nav-link:hover {
+    color: var(--foreground);
+    transition-duration: var(--m-in);
+  }
+  .nav-link:hover::after {
+    transform: scaleX(1);
+    transform-origin: left;
+    transition-duration: var(--m-in);
+  }
+}
+
+/* ---------- Cards: one recipe. A linked card lifts 2px, its photo zooms inside its frame ---------- */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--card);
+  transition:
+    transform 120ms var(--ease),
+    border-color 120ms var(--ease),
+    box-shadow 120ms var(--ease);
+}
+.m-zoom {
+  overflow: hidden;
+}
+.m-zoom img {
+  transition: transform var(--m-image-out) var(--ease);
+}
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklab, var(--foreground) 22%, var(--border));
+    box-shadow: 0 12px 24px -12px color-mix(in oklab, var(--foreground) 10%, transparent);
+    transition-duration: 180ms;
+  }
+  .card:hover .m-zoom img,
+  a.m-zoom:hover img {
+    transform: scale(1.025);
+    transition-duration: var(--m-image);
+  }
+  .card:hover .card__title {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+  }
+}
+/* The whole card is one link: the title's link stretches over it. */
+.card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+}
+
+/* ---------- Hero entrance: once on load, then it stands ---------- */
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes settle {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+[data-enter] .enter-line {
+  animation: rise 700ms var(--ease-enter) both;
+}
+[data-enter] .enter-line:nth-child(2) {
+  animation-delay: 80ms;
+}
+[data-enter] .enter-line:nth-child(3) {
+  animation-delay: 160ms;
+}
+[data-enter] .enter-line:nth-child(4) {
+  animation-delay: 240ms;
+}
+[data-enter] .enter-media {
+  animation: settle 900ms var(--ease-enter) 120ms both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0ms !important;
+  }
+  .card:hover,
+  .btn:hover,
+  .btn:active {
+    transform: none;
+  }
+}
+
+/* ---------- Article body (unlayered so it wins over the typography plugin) ---------- */
+
+.article-body {
+  font-size: 18px;
+  line-height: 1.75;
+}
+.article-body :where(a) {
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.article-body :where(h2) {
+  letter-spacing: -0.01em;
+}
 .prose img {
-  border-radius: 0.75rem;
+  border-radius: var(--r-md);
   max-height: 360px;
   width: auto;
   margin-inline: auto;
@@ -50,4 +384,25 @@ body {
 .prose table {
   display: block;
   overflow-x: auto;
+}
+
+@layer components {
+/* ---------- Mobile menu sheet ---------- */
+
+.menu-sheet {
+  position: fixed;
+  inset: var(--nav) 0 0 0;
+  z-index: 40;
+  background: var(--background);
+  border-top: 1px solid var(--border);
+  overflow-y: auto;
+}
+.menu-sheet a {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  font-size: 20px;
+  font-weight: 600;
+}
 }
