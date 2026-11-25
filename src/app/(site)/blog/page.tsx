@@ -11,9 +11,19 @@ export const metadata: Metadata = {
 export default async function BlogPage() {
   const posts = await getPublishedPosts();
   return (
-    <div className="mx-auto max-w-6xl px-4 py-12">
-      <h1 className="mb-8 font-serif text-4xl font-semibold">All guides</h1>
-      <PostGrid posts={posts} />
+    <div className="wrap pt-12 md:pt-20">
+      <header data-enter className="max-w-3xl">
+        <p className="enter-line text-[15px] font-medium text-muted">{posts.length} guides in English and Spanish</p>
+        <h1 className="enter-line mt-2 font-serif text-[40px] font-semibold leading-[1.1] tracking-[-0.02em] sm:text-[56px]">
+          All guitar guides
+        </h1>
+        <p className="enter-line mt-5 text-lg leading-relaxed text-ink-soft sm:text-xl">
+          Gear roundups, string advice and how-tos, newest first.
+        </p>
+      </header>
+      <div className="mt-12 md:mt-16">
+        <PostGrid posts={posts} />
+      </div>
     </div>
   );
 }
