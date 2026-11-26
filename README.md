@@ -19,15 +19,10 @@ Sign in at `/login`, then edit posts at `/admin`. Public sign-up is turned off, 
 
 ## Deploying on Vercel
 
-The build reads posts from the database to prerender every page, so the database must exist and be migrated **before** the first deploy.
-
-1. Create a Neon project and copy its **pooled** connection string.
-2. From your machine, with that string in `.env.local`: `pnpm db:migrate && pnpm db:seed && pnpm admin:create --email … --name …`
-3. In Vercel → Project Settings → Environment Variables, add for Production and Preview:
-   - `DATABASE_URL`: the pooled Neon string
-   - `BETTER_AUTH_SECRET`: output of `openssl rand -hex 32`
-   - `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL`: the site's public URL, e.g. `https://guitarandstring.com`
-4. Redeploy.
+1. In Vercel, add the Neon integration from the Storage tab and connect it to this project for Production and Preview. It sets `DATABASE_URL` and `DATABASE_URL_UNPOOLED`, and gives each Preview deployment its own Neon branch.
+2. In Project Settings → Environment Variables, add `BETTER_AUTH_SECRET` (output of `openssl rand -hex 32`) for Production and Preview. Once a custom domain is attached, also set `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL` to it, e.g. `https://guitarandstring.com`. Until then sign-in uses the Vercel URL.
+3. Deploy. On Vercel, `pnpm build` first runs `scripts/prepare-db.ts`, which applies migrations and loads any missing articles from `content/`, then builds. Both steps are safe to repeat.
+4. Create your admin login once, from your machine with the production `DATABASE_URL` in `.env.local`: `pnpm admin:create --email … --name …`
 
 If `DATABASE_URL` is missing, the build stops with a message saying so instead of trying `localhost:5432`.
 
