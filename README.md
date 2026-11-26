@@ -17,6 +17,20 @@ pnpm dev
 
 Sign in at `/login`, then edit posts at `/admin`. Public sign-up is turned off, so `pnpm admin:create` is the only way to add an editor.
 
+## Deploying on Vercel
+
+The build reads posts from the database to prerender every page, so the database must exist and be migrated **before** the first deploy.
+
+1. Create a Neon project and copy its **pooled** connection string.
+2. From your machine, with that string in `.env.local`: `pnpm db:migrate && pnpm db:seed && pnpm admin:create --email … --name …`
+3. In Vercel → Project Settings → Environment Variables, add for Production and Preview:
+   - `DATABASE_URL`: the pooled Neon string
+   - `BETTER_AUTH_SECRET`: output of `openssl rand -hex 32`
+   - `BETTER_AUTH_URL` and `NEXT_PUBLIC_SITE_URL`: the site's public URL, e.g. `https://guitarandstring.com`
+4. Redeploy.
+
+If `DATABASE_URL` is missing, the build stops with a message saying so instead of trying `localhost:5432`.
+
 ## How content works
 
 - `content/posts/*.md` and `content/pages/*.md` are the starting articles. `pnpm db:seed` converts them to sanitized HTML and stores them in the database.
